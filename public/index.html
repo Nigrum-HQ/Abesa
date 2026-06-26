@@ -1,0 +1,595 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABESA — Sistema Central</title>
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy2: #0f2040;
+    --navy3: #162a4a;
+    --gold: #C9A84C;
+    --gold2: #e0b855;
+    --white: #ffffff;
+    --gray: #94a3b8;
+    --gray2: #64748b;
+    --green: #22c55e;
+    --red: #ef4444;
+    --bg: #060e1c;
+    --card: #0d1f38;
+    --border: rgba(201,168,76,0.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--white); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  /* LOGIN */
+  #login-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 24px;
+    background: radial-gradient(ellipse at 50% 30%, rgba(201,168,76,0.08) 0%, transparent 70%);
+  }
+  .login-logo {
+    width: 72px; height: 72px; background: linear-gradient(135deg, var(--gold), var(--gold2));
+    border-radius: 18px; display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 900; color: var(--navy); margin-bottom: 12px; letter-spacing: -1px;
+  }
+  .login-title { font-size: 28px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+  .login-sub { color: var(--gray); font-size: 14px; margin-bottom: 36px; }
+  .login-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px; width: 100%; max-width: 380px;
+  }
+  .login-box label { display: block; font-size: 12px; color: var(--gray); margin-bottom: 6px; font-weight: 500; letter-spacing: 0.5px; }
+  .login-box input {
+    width: 100%; background: var(--navy3); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 12px 14px; color: var(--white); font-size: 15px; margin-bottom: 16px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .login-box input:focus { border-color: var(--gold); }
+  .btn-login {
+    width: 100%; background: linear-gradient(135deg, var(--gold), var(--gold2));
+    border: none; border-radius: 8px; padding: 13px; font-size: 15px; font-weight: 700;
+    color: var(--navy); cursor: pointer; transition: opacity 0.2s; margin-top: 4px;
+  }
+  .btn-login:hover { opacity: 0.9; }
+  .login-error { color: #f87171; font-size: 13px; margin-top: 10px; text-align: center; min-height: 20px; }
+
+  /* APP */
+  #app-screen { display: none; flex-direction: column; min-height: 100vh; }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--navy); border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-logo {
+    width: 36px; height: 36px; background: linear-gradient(135deg, var(--gold), var(--gold2));
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 900; color: var(--navy); flex-shrink: 0;
+  }
+  .topbar-name { font-size: 16px; font-weight: 700; color: var(--white); flex: 1; }
+  .topbar-user { font-size: 13px; color: var(--gray); }
+  .topbar-mes { font-size: 13px; color: var(--gold); font-weight: 600; }
+  .btn-logout {
+    background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+    padding: 6px 12px; color: var(--gray); font-size: 12px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* LAYOUT */
+  .layout { display: flex; flex: 1; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px; background: var(--navy); border-right: 1px solid var(--border);
+    padding: 20px 12px; flex-shrink: 0; min-height: calc(100vh - 60px);
+  }
+  .sidebar-section { font-size: 10px; color: var(--gray2); font-weight: 700; letter-spacing: 1.5px; padding: 0 8px; margin: 20px 0 8px; text-transform: uppercase; }
+  .sidebar-section:first-child { margin-top: 0; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px;
+    cursor: pointer; font-size: 14px; color: var(--gray); transition: all 0.15s; margin-bottom: 2px;
+  }
+  .nav-item:hover { background: var(--navy3); color: var(--white); }
+  .nav-item.active { background: rgba(201,168,76,0.12); color: var(--gold); font-weight: 600; }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  /* MAIN */
+  .main { flex: 1; padding: 28px; overflow-y: auto; max-width: 1200px; }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-size: 22px; font-weight: 700; color: var(--white); }
+  .page-sub { font-size: 13px; color: var(--gray); margin-top: 4px; }
+
+  /* KPI GRID */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .kpi-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; position: relative; overflow: hidden;
+  }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold2));
+  }
+  .kpi-label { font-size: 11px; color: var(--gray); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+  .kpi-value { font-size: 24px; font-weight: 700; color: var(--white); }
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.red { color: var(--red); }
+  .kpi-value.gold { color: var(--gold); }
+  .kpi-sub { font-size: 12px; color: var(--gray); margin-top: 4px; }
+
+  /* CARDS */
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--gray); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* SISTEMA CARDS */
+  .sistemas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .sistema-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; position: relative;
+  }
+  .sistema-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .sistema-icon {
+    width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; flex-shrink: 0;
+  }
+  .sistema-icon.zaifi { background: rgba(59,130,246,0.15); }
+  .sistema-icon.hausbrot { background: rgba(249,115,22,0.15); }
+  .sistema-icon.odsa { background: rgba(168,85,247,0.15); }
+  .sistema-name { font-size: 16px; font-weight: 700; color: var(--white); }
+  .sistema-status { font-size: 11px; margin-top: 2px; }
+  .sistema-status.ok { color: var(--green); }
+  .sistema-status.error { color: var(--red); }
+  .sistema-status.loading { color: var(--gray); }
+  .sistema-rows { display: flex; flex-direction: column; gap: 8px; }
+  .sistema-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+  .sistema-row-label { color: var(--gray); }
+  .sistema-row-value { font-weight: 600; color: var(--white); }
+  .sistema-row-value.green { color: var(--green); }
+  .sistema-row-value.red { color: var(--red); }
+  .sistema-divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+  .sistema-resultado { font-size: 16px; font-weight: 700; }
+
+  /* ESTADO */
+  .estado-badge {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+    border-radius: 20px; font-size: 11px; font-weight: 700;
+  }
+  .estado-badge.online { background: rgba(34,197,94,0.1); color: var(--green); }
+  .estado-badge.offline { background: rgba(239,68,68,0.1); color: var(--red); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot.green { background: var(--green); }
+  .dot.red { background: var(--red); }
+
+  /* TABLA */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; color: var(--gray2); font-weight: 700; letter-spacing: 0.5px; padding: 0 12px 10px; text-transform: uppercase; }
+  td { padding: 12px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.04); }
+  tr:first-child td { border-top: none; }
+
+  /* LOADING */
+  .loading-state { text-align: center; padding: 60px 20px; color: var(--gray); }
+  .loading-spinner {
+    width: 32px; height: 32px; border: 3px solid rgba(201,168,76,0.2);
+    border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* REFRESH BTN */
+  .btn-refresh {
+    background: transparent; border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 16px; color: var(--gold); font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+  }
+  .btn-refresh:hover { background: rgba(201,168,76,0.08); }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { padding: 16px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">A</div>
+  <div class="login-title">ABESA</div>
+  <div class="login-sub">Sistema Central de Gestión</div>
+  <div class="login-box">
+    <label>EMAIL</label>
+    <input type="email" id="l-email" placeholder="tu@email.com" autocomplete="email">
+    <label>CONTRASEÑA</label>
+    <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password">
+    <button class="btn-login" id="l-btn">Ingresar</button>
+    <div class="login-error" id="l-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="topbar-logo">A</div>
+    <div class="topbar-name">ABESA</div>
+    <div class="topbar-mes" id="top-mes"></div>
+    <div class="topbar-user" id="top-user"></div>
+    <button class="btn-logout" id="btn-logout">Salir</button>
+  </div>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-section">Central</div>
+      <div class="nav-item active" data-sec="consolidado"><span class="nav-icon">📊</span> Consolidado</div>
+      <div class="nav-item" data-sec="caja"><span class="nav-icon">💰</span> Caja Central</div>
+      <div class="sidebar-section">Empresas</div>
+      <div class="nav-item" data-sec="zaifi"><span class="nav-icon">🔵</span> Zaifi</div>
+      <div class="nav-item" data-sec="hausbrot"><span class="nav-icon">🟠</span> Hausbrot</div>
+      <div class="nav-item" data-sec="odsa"><span class="nav-icon">🟣</span> ODSA</div>
+    </div>
+    <div class="main">
+
+      <!-- CONSOLIDADO -->
+      <div class="section active" id="sec-consolidado">
+        <div class="page-header">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div class="page-title">Consolidado General</div>
+              <div class="page-sub" id="con-sub">Cargando datos...</div>
+            </div>
+            <button class="btn-refresh" id="btn-refresh">↻ Actualizar</button>
+          </div>
+        </div>
+        <div id="con-loading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <div>Conectando con los sistemas...</div>
+        </div>
+        <div id="con-content" style="display:none;">
+          <div class="kpi-grid" id="con-kpis"></div>
+          <div class="sistemas-grid" id="con-sistemas"></div>
+          <div class="card">
+            <div class="card-title">Resumen por empresa</div>
+            <table>
+              <thead><tr>
+                <th>Sistema</th><th>Ingresos</th><th>Gastos</th><th>Resultado</th><th>Estado</th>
+              </tr></thead>
+              <tbody id="con-tabla"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="con-error" style="display:none;" class="loading-state">
+          <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
+          <div>No se pudieron cargar los datos</div>
+          <div style="font-size:12px;margin-top:8px;color:#64748b;" id="con-err-msg"></div>
+        </div>
+      </div>
+
+      <!-- CAJA CENTRAL -->
+      <div class="section" id="sec-caja">
+        <div class="page-header">
+          <div class="page-title">Caja Central</div>
+          <div class="page-sub">Movimientos de dinero desde ABESA</div>
+        </div>
+        <div class="kpi-grid" id="caja-kpis"></div>
+        <div class="card">
+          <div class="card-title">Flujo de fondos consolidado</div>
+          <div id="caja-content" style="color:var(--gray);font-size:14px;padding:20px 0;">
+            Cargando datos de caja...
+          </div>
+        </div>
+      </div>
+
+      <!-- ZAIFI -->
+      <div class="section" id="sec-zaifi">
+        <div class="page-header">
+          <div class="page-title">🔵 Zaifi</div>
+          <div class="page-sub">Detalle ejecutivo del mes</div>
+        </div>
+        <div id="zaifi-content" class="loading-state">
+          <div class="loading-spinner"></div><div>Cargando...</div>
+        </div>
+      </div>
+
+      <!-- HAUSBROT -->
+      <div class="section" id="sec-hausbrot">
+        <div class="page-header">
+          <div class="page-title">🟠 Hausbrot</div>
+          <div class="page-sub">Detalle ejecutivo del mes</div>
+        </div>
+        <div id="hausbrot-content" class="loading-state">
+          <div class="loading-spinner"></div><div>Cargando...</div>
+        </div>
+      </div>
+
+      <!-- ODSA -->
+      <div class="section" id="sec-odsa">
+        <div class="page-header">
+          <div class="page-title">🟣 ODSA</div>
+          <div class="page-sub">Detalle ejecutivo del mes</div>
+        </div>
+        <div id="odsa-content" class="loading-state">
+          <div class="loading-spinner"></div><div>Cargando...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';  // mismo dominio en Vercel
+
+// ─── AUTH ───
+function getToken() { return sessionStorage.getItem('abesa_token'); }
+function getNombre() { return sessionStorage.getItem('abesa_nombre'); }
+function logout() {
+  sessionStorage.clear();
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ─── LOGIN ───
+document.getElementById('l-btn').addEventListener('click', async () => {
+  const email = document.getElementById('l-email').value.trim();
+  const pass = document.getElementById('l-pass').value;
+  const errEl = document.getElementById('l-err');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Completá los campos'; return; }
+
+  const btn = document.getElementById('l-btn');
+  btn.textContent = 'Ingresando...'; btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/api/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) { errEl.textContent = data.error || 'Error al ingresar'; return; }
+    sessionStorage.setItem('abesa_token', data.token);
+    sessionStorage.setItem('abesa_nombre', data.nombre);
+    initApp();
+  } catch (e) {
+    errEl.textContent = 'Error de conexión';
+  } finally {
+    btn.textContent = 'Ingresar'; btn.disabled = false;
+  }
+});
+
+['l-email','l-pass'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('l-btn').click();
+  });
+});
+
+// ─── APP INIT ───
+function initApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.flexDirection = 'column';
+
+  const nombre = getNombre();
+  document.getElementById('top-user').textContent = nombre || '';
+  const mes = new Date().toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+  document.getElementById('top-mes').textContent = mes.charAt(0).toUpperCase() + mes.slice(1);
+
+  loadConsolidado();
+}
+
+document.getElementById('btn-logout').addEventListener('click', logout);
+
+// ─── NAV ───
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('sec-' + el.dataset.sec).classList.add('active');
+  });
+});
+
+// ─── CONSOLIDADO ───
+let consolidadoData = null;
+
+async function loadConsolidado() {
+  const loading = document.getElementById('con-loading');
+  const content = document.getElementById('con-content');
+  const error = document.getElementById('con-error');
+  loading.style.display = 'block'; content.style.display = 'none'; error.style.display = 'none';
+
+  try {
+    const res = await fetch(`${API}/api/consolidado`, {
+      headers: { 'x-session-token': getToken() }
+    });
+    if (!res.ok) throw new Error('Sin autorización');
+    const data = await res.json();
+    consolidadoData = data;
+    renderConsolidado(data);
+    loading.style.display = 'none'; content.style.display = 'block';
+  } catch (e) {
+    loading.style.display = 'none'; error.style.display = 'block';
+    document.getElementById('con-err-msg').textContent = e.message;
+  }
+}
+
+document.getElementById('btn-refresh').addEventListener('click', loadConsolidado);
+
+function fmt(n) {
+  if (n == null) return '—';
+  return '$' + Math.round(n).toLocaleString('es-AR');
+}
+
+function renderConsolidado(data) {
+  const c = data.consolidado;
+  const sistemas = data.sistemas;
+
+  // Sub
+  document.getElementById('con-sub').textContent = `Datos del mes — ${data.mes}`;
+
+  // KPIs globales
+  const resultado = c.ingresos - c.gastos;
+  document.getElementById('con-kpis').innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-label">Ingresos Totales</div>
+      <div class="kpi-value green">${fmt(c.ingresos)}</div>
+      <div class="kpi-sub">Suma de los 3 sistemas</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Gastos Totales</div>
+      <div class="kpi-value red">${fmt(c.gastos)}</div>
+      <div class="kpi-sub">Suma de los 3 sistemas</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Resultado Neto</div>
+      <div class="kpi-value ${resultado >= 0 ? 'green' : 'red'}">${fmt(resultado)}</div>
+      <div class="kpi-sub">Ingresos - Gastos</div>
+    </div>
+  `;
+
+  // Sistema cards
+  const sCards = [
+    { key: 'zaifi', icon: '🔵', label: 'Zaifi', cls: 'zaifi' },
+    { key: 'hausbrot', icon: '🟠', label: 'Hausbrot', cls: 'hausbrot' },
+    { key: 'odsa', icon: '🟣', label: 'ODSA', cls: 'odsa' },
+  ];
+  document.getElementById('con-sistemas').innerHTML = sCards.map(s => {
+    const d = sistemas[s.key];
+    const online = d && d.ok !== false;
+    const res = online ? (d.resultado || (d.ingresos - d.gastos)) : null;
+    return `
+      <div class="sistema-card">
+        <div class="sistema-header">
+          <div class="sistema-icon ${s.cls}">${s.icon}</div>
+          <div>
+            <div class="sistema-name">${s.label}</div>
+            <div class="sistema-status ${online ? 'ok' : 'error'}">${online ? '● Conectado' : '● Sin datos'}</div>
+          </div>
+        </div>
+        ${online ? `
+        <div class="sistema-rows">
+          <div class="sistema-row"><span class="sistema-row-label">Ingresos</span><span class="sistema-row-value green">${fmt(d.ingresos)}</span></div>
+          <div class="sistema-row"><span class="sistema-row-label">Gastos</span><span class="sistema-row-value red">${fmt(d.gastos)}</span></div>
+          ${d.gastos_pendientes != null ? `<div class="sistema-row"><span class="sistema-row-label">Pendientes</span><span class="sistema-row-value">${fmt(d.gastos_pendientes)}</span></div>` : ''}
+          <hr class="sistema-divider">
+          <div class="sistema-row">
+            <span class="sistema-row-label" style="font-weight:600;">Resultado</span>
+            <span class="sistema-row-value sistema-resultado ${res >= 0 ? 'green' : 'red'}">${fmt(res)}</span>
+          </div>
+        </div>` : `<div style="color:var(--gray);font-size:13px;">No se pudo conectar con este sistema</div>`}
+      </div>`;
+  }).join('');
+
+  // Tabla resumen
+  document.getElementById('con-tabla').innerHTML = sCards.map(s => {
+    const d = sistemas[s.key];
+    const online = d && d.ok !== false;
+    const res = online ? (d.resultado || (d.ingresos - d.gastos)) : null;
+    return `<tr>
+      <td><strong>${s.icon} ${s.label}</strong></td>
+      <td style="color:var(--green)">${online ? fmt(d.ingresos) : '—'}</td>
+      <td style="color:var(--red)">${online ? fmt(d.gastos) : '—'}</td>
+      <td style="color:${res >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${online ? fmt(res) : '—'}</strong></td>
+      <td><span class="estado-badge ${online ? 'online' : 'offline'}"><span class="dot ${online ? 'green' : 'red'}"></span>${online ? 'Online' : 'Offline'}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Renderizar secciones individuales
+  renderSistema('zaifi', sistemas.zaifi, '🔵');
+  renderSistema('hausbrot', sistemas.hausbrot, '🟠');
+  renderSistema('odsa', sistemas.odsa, '🟣');
+  renderCaja(sistemas);
+}
+
+function renderSistema(key, d, icon) {
+  const el = document.getElementById(`${key}-content`);
+  if (!d || d.ok === false) {
+    el.innerHTML = `<div style="color:var(--gray);padding:40px;text-align:center;">No se pudieron cargar los datos de este sistema</div>`;
+    return;
+  }
+  const res = d.resultado || (d.ingresos - d.gastos);
+  el.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Ingresos</div><div class="kpi-value green">${fmt(d.ingresos)}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Gastos Totales</div><div class="kpi-value red">${fmt(d.gastos)}</div></div>
+      ${d.gastos_pagados != null ? `<div class="kpi-card"><div class="kpi-label">Gastos Pagados</div><div class="kpi-value">${fmt(d.gastos_pagados)}</div></div>` : ''}
+      ${d.gastos_pendientes != null ? `<div class="kpi-card"><div class="kpi-label">Pendientes</div><div class="kpi-value gold">${fmt(d.gastos_pendientes)}</div></div>` : ''}
+      <div class="kpi-card"><div class="kpi-label">Resultado</div><div class="kpi-value ${res >= 0 ? 'green' : 'red'}">${fmt(res)}</div></div>
+    </div>
+    <div class="card"><div class="card-title">Detalle del mes ${d.mes || ''}</div>
+      <table>
+        <thead><tr><th>Concepto</th><th>Monto</th></tr></thead>
+        <tbody>
+          <tr><td>Ingresos del mes</td><td style="color:var(--green);font-weight:600;">${fmt(d.ingresos)}</td></tr>
+          <tr><td>Gastos totales</td><td style="color:var(--red);font-weight:600;">${fmt(d.gastos)}</td></tr>
+          ${d.gastos_pagados != null ? `<tr><td style="padding-left:24px;color:var(--gray)">— Pagados</td><td>${fmt(d.gastos_pagados)}</td></tr>` : ''}
+          ${d.gastos_pendientes != null ? `<tr><td style="padding-left:24px;color:var(--gray)">— Pendientes</td><td style="color:var(--gold)">${fmt(d.gastos_pendientes)}</td></tr>` : ''}
+          <tr style="border-top:2px solid var(--border)"><td><strong>Resultado</strong></td><td style="color:${res >= 0 ? 'var(--green)' : 'var(--red)'};font-weight:700;font-size:16px;">${fmt(res)}</td></tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderCaja(sistemas) {
+  const total = Object.values(sistemas).reduce((sum, d) => {
+    if (!d || d.ok === false) return sum;
+    return sum + (d.resultado || (d.ingresos - d.gastos));
+  }, 0);
+
+  document.getElementById('caja-kpis').innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-label">Resultado Consolidado</div>
+      <div class="kpi-value ${total >= 0 ? 'green' : 'red'}">${fmt(total)}</div>
+      <div class="kpi-sub">Suma de los 3 sistemas</div>
+    </div>
+  `;
+
+  document.getElementById('caja-content').innerHTML = `
+    <table>
+      <thead><tr><th>Sistema</th><th>Ingresos</th><th>Gastos</th><th>Resultado</th></tr></thead>
+      <tbody>
+        ${Object.entries(sistemas).map(([k, d]) => {
+          const icons = { zaifi: '🔵', hausbrot: '🟠', odsa: '🟣' };
+          const names = { zaifi: 'Zaifi', hausbrot: 'Hausbrot', odsa: 'ODSA' };
+          if (!d || d.ok === false) return `<tr><td>${icons[k]} ${names[k]}</td><td colspan="3" style="color:var(--gray)">Sin datos</td></tr>`;
+          const res = d.resultado || (d.ingresos - d.gastos);
+          return `<tr>
+            <td><strong>${icons[k]} ${names[k]}</strong></td>
+            <td style="color:var(--green)">${fmt(d.ingresos)}</td>
+            <td style="color:var(--red)">${fmt(d.gastos)}</td>
+            <td style="color:${res >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${fmt(res)}</strong></td>
+          </tr>`;
+        }).join('')}
+        <tr style="border-top:2px solid var(--border)">
+          <td><strong>TOTAL</strong></td>
+          <td style="color:var(--green);font-weight:700;">
+            ${fmt(Object.values(sistemas).reduce((s,d) => s + (d?.ingresos||0), 0))}
+          </td>
+          <td style="color:var(--red);font-weight:700;">
+            ${fmt(Object.values(sistemas).reduce((s,d) => s + (d?.gastos||0), 0))}
+          </td>
+          <td style="color:${total >= 0 ? 'var(--green)' : 'var(--red)'};font-weight:700;font-size:16px;">
+            ${fmt(total)}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+}
+
+// ─── AUTO LOGIN SI HAY TOKEN ───
+if (getToken()) initApp();
+</script>
+</body>
+</html>
